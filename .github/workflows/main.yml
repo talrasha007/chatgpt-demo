@@ -1,27 +1,30 @@
-name: Create and publish a Docker image
+name: Deploy
 
 on:
   push:
-    branches: ['main']
+    branches:
+      - main
 
 jobs:
-  build-and-push-image:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
+    timeout-minutes: 10
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build & push Docker image
-        uses: mr-smithers-excellent/docker-build-push@v6
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
-          image: ${{ github.repository }}
-          tags: latest
-          multiPlatform: true
-          platform: linux/arm64,linux/amd64
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          node-version: 18
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        run: npm run build
+
+      - uses: shallwefootball/s3-upload-action@master
+        name: Upload S3
+        id: S3
+        with:
+          aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_bucket: ${{ secrets.AWS_BUCKET }}
+          source_dir: 'dist'
+          destination_dir: ''
