@@ -31,7 +31,7 @@ export default defineConfig({
     }),
     solidJs()
   ],
-  output: 'static',
+  output: 'server',
   adapter: envAdapter(),
   vite: {
     plugins: [
